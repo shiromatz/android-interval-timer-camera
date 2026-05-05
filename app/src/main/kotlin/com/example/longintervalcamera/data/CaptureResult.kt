@@ -1,0 +1,14 @@
+package com.example.longintervalcamera.data
+
+enum class CaptureResult {
+    SUCCESS,
+    SKIPPED_LOW_BATTERY,
+    SKIPPED_LOW_STORAGE,
+    FAILED_CAMERA_INIT,
+    FAILED_CAPTURE,
+    FAILED_SAVE,
+    SESSION_COMPLETED,
+    SESSION_STOPPED_BY_USER,
+    SESSION_PAUSED,
+    DEVICE_REBOOTED_OPEN_APP_TO_RESUME
+}
