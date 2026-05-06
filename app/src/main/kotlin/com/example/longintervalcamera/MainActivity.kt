@@ -123,7 +123,7 @@ class MainActivity : android.app.Activity() {
             if (hasRequiredPermissions()) {
                 validateAndConfirmStart()
             } else {
-                Toast.makeText(this, "カメラと通知の権限が必要です。", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, getString(R.string.permission_required), Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -135,21 +135,21 @@ class MainActivity : android.app.Activity() {
         }
 
         root.addView(TextView(this).apply {
-            text = "LongIntervalCamera"
+            text = getString(R.string.app_name)
             textSize = 21f
             setTypeface(typeface, Typeface.BOLD)
         })
 
         root.addView(TextView(this).apply {
-            text = "長期インターバル撮影"
+            text = getString(R.string.app_subtitle)
             textSize = 13f
             setPadding(0, dp(1), 0, dp(8))
         })
 
-        root.addView(sectionTitle("設定"))
+        root.addView(sectionTitle(getString(R.string.section_settings)))
         val dateRow = horizontalRow()
-        startTimeEdit = labeledEditColumn(dateRow, "撮影開始日時", inputType = InputType.TYPE_NULL, marginEnd = true)
-        endTimeEdit = labeledEditColumn(dateRow, "撮影終了日時", inputType = InputType.TYPE_NULL)
+        startTimeEdit = labeledEditColumn(dateRow, getString(R.string.label_start_datetime), inputType = InputType.TYPE_NULL, marginEnd = true)
+        endTimeEdit = labeledEditColumn(dateRow, getString(R.string.label_end_datetime), inputType = InputType.TYPE_NULL)
         root.addView(dateRow)
         startTimeEdit.setOnClickListener { pickDateTime(startTimeEdit) }
         endTimeEdit.setOnClickListener { pickDateTime(endTimeEdit) }
@@ -161,7 +161,7 @@ class MainActivity : android.app.Activity() {
             gravity = Gravity.CENTER_VERTICAL
         }
         intervalEdit = EditText(this).apply {
-            hint = "間隔"
+            hint = getString(R.string.hint_interval)
             inputType = InputType.TYPE_CLASS_NUMBER
             setSingleLine(true)
             applyCompactEditStyle()
@@ -171,30 +171,30 @@ class MainActivity : android.app.Activity() {
             adapter = ArrayAdapter(
                 this@MainActivity,
                 android.R.layout.simple_spinner_dropdown_item,
-                listOf("時間", "分")
+                resources.getStringArray(R.array.interval_units).toList()
             )
             minimumHeight = 0
             layoutParams = LinearLayout.LayoutParams(dp(92), dp(40))
         }
         intervalRow.addView(intervalEdit)
         intervalRow.addView(intervalUnitSpinner)
-        intervalColumn.addView(label("撮影間隔"))
+        intervalColumn.addView(label(getString(R.string.label_capture_interval)))
         intervalColumn.addView(intervalRow)
         intervalQualityRow.addView(intervalColumn)
-        jpegQualityEdit = labeledEditColumn(intervalQualityRow, "JPEG品質", InputType.TYPE_CLASS_NUMBER)
+        jpegQualityEdit = labeledEditColumn(intervalQualityRow, getString(R.string.label_jpeg_quality), InputType.TYPE_CLASS_NUMBER)
         root.addView(intervalQualityRow)
 
-        folderEdit = labeledEdit(root, "保存先フォルダ名")
+        folderEdit = labeledEdit(root, getString(R.string.label_save_folder_name))
         val thresholdRow = horizontalRow()
-        minBatteryEdit = labeledEditColumn(thresholdRow, "最低バッテリー残量(%)", InputType.TYPE_CLASS_NUMBER, marginEnd = true)
+        minBatteryEdit = labeledEditColumn(thresholdRow, getString(R.string.label_min_battery_percent), InputType.TYPE_CLASS_NUMBER, marginEnd = true)
         minFreeSpaceEdit = labeledEditColumn(
             thresholdRow,
-            "最低空き容量(GB)",
+            getString(R.string.label_min_free_space_gb),
             InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
         )
         root.addView(thresholdRow)
         blackoutCheck = CheckBox(this).apply {
-            text = "画面暗転モード"
+            text = getString(R.string.label_blackout_mode)
             textSize = 15f
             minHeight = dp(36)
             minimumHeight = 0
@@ -202,25 +202,25 @@ class MainActivity : android.app.Activity() {
         }
         root.addView(blackoutCheck)
 
-        root.addView(sectionTitle("状態"))
-        statusText = statusLine(root, "現在の状態")
-        nextCaptureText = statusLine(root, "次回撮影")
-        countText = statusLine(root, "撮影済み枚数")
-        lastCaptureText = statusLine(root, "最後の撮影")
-        lastResultText = statusLine(root, "最後の結果")
-        pathText = statusLine(root, "保存先")
-        batteryText = statusLine(root, "バッテリー")
-        storageText = statusLine(root, "空き容量")
+        root.addView(sectionTitle(getString(R.string.section_status)))
+        statusText = statusLine(root, getString(R.string.label_current_status))
+        nextCaptureText = statusLine(root, getString(R.string.label_next_capture))
+        countText = statusLine(root, getString(R.string.label_captured_count))
+        lastCaptureText = statusLine(root, getString(R.string.label_last_capture))
+        lastResultText = statusLine(root, getString(R.string.label_last_result))
+        pathText = statusLine(root, getString(R.string.label_save_location))
+        batteryText = statusLine(root, getString(R.string.label_battery))
+        storageText = statusLine(root, getString(R.string.label_free_space))
 
-        root.addView(sectionTitle("操作"))
-        startButton = button("撮影開始") { startSessionClicked() }
-        pauseButton = button("一時停止") { CaptureForegroundService.pause(this); refreshStatus() }
-        resumeButton = button("再開") { resumeSessionClicked() }
-        stopButton = button("停止") { confirmStop() }
-        blackoutButton = button("黒画面表示") { startActivity(Intent(this, BlackoutActivity::class.java)) }
-        logButton = button("ログ表示") { showLogDialog() }
-        latestImageButton = button("最新画像を開く") { openLatestImage() }
-        openFolderButton = button("保存フォルダを開く") { openSaveFolder() }
+        root.addView(sectionTitle(getString(R.string.section_actions)))
+        startButton = button(getString(R.string.button_start_capture)) { startSessionClicked() }
+        pauseButton = button(getString(R.string.button_pause)) { CaptureForegroundService.pause(this); refreshStatus() }
+        resumeButton = button(getString(R.string.button_resume)) { resumeSessionClicked() }
+        stopButton = button(getString(R.string.button_stop)) { confirmStop() }
+        blackoutButton = button(getString(R.string.button_blackout_display)) { startActivity(Intent(this, BlackoutActivity::class.java)) }
+        logButton = button(getString(R.string.button_show_log)) { showLogDialog() }
+        latestImageButton = button(getString(R.string.button_open_latest_image)) { openLatestImage() }
+        openFolderButton = button(getString(R.string.button_open_save_folder)) { openSaveFolder() }
 
         root.addView(buttonRow(startButton, blackoutButton))
         root.addView(buttonRow(pauseButton, resumeButton, stopButton))
@@ -286,15 +286,17 @@ class MainActivity : android.app.Activity() {
         )
 
         AlertDialog.Builder(this)
-            .setTitle("撮影セッションを開始します")
+            .setTitle(getString(R.string.start_session_title))
             .setMessage(
-                "開始: ${TimeUtils.formatDisplay(config.startTimeMillis)}\n" +
-                    "終了: ${TimeUtils.formatDisplay(config.endTimeMillis)}\n" +
-                    "間隔: ${formatInterval(config.intervalMillis)}\n" +
-                    "推定撮影枚数: ${estimate}枚\n\n" +
-                    "撮影中は通知が表示されます。端末の省電力設定により撮影時刻が遅れる場合があります。"
+                getString(
+                    R.string.start_session_message,
+                    TimeUtils.formatDisplay(config.startTimeMillis),
+                    TimeUtils.formatDisplay(config.endTimeMillis),
+                    formatInterval(config.intervalMillis),
+                    estimate
+                )
             )
-            .setPositiveButton("開始") { _, _ ->
+            .setPositiveButton(getString(R.string.button_start)) { _, _ ->
                 repository.saveSession(config)
                 CaptureForegroundService.start(this)
                 if (config.blackoutModeEnabled) {
@@ -302,14 +304,14 @@ class MainActivity : android.app.Activity() {
                 }
                 refreshStatus()
             }
-            .setNegativeButton("キャンセル", null)
+            .setNegativeButton(getString(R.string.button_cancel), null)
             .show()
     }
 
     private fun resumeSessionClicked() {
         val session = repository.getSession()
         if (session == null || !session.status.isUnfinished) {
-            Toast.makeText(this, "再開できる未完了セッションがありません。", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.no_resumable_session), Toast.LENGTH_LONG).show()
             return
         }
         if (!hasRequiredPermissions()) {
@@ -326,13 +328,13 @@ class MainActivity : android.app.Activity() {
 
     private fun confirmStop() {
         AlertDialog.Builder(this)
-            .setTitle("撮影セッションを停止しますか？")
-            .setMessage("停止後も撮影済み画像とログは保存されます。")
-            .setPositiveButton("停止") { _, _ ->
+            .setTitle(getString(R.string.stop_session_title))
+            .setMessage(getString(R.string.stop_session_message))
+            .setPositiveButton(getString(R.string.button_stop)) { _, _ ->
                 CaptureForegroundService.stop(this)
                 refreshStatus()
             }
-            .setNegativeButton("キャンセル", null)
+            .setNegativeButton(getString(R.string.button_cancel), null)
             .show()
     }
 
@@ -345,35 +347,35 @@ class MainActivity : android.app.Activity() {
         val minFreeSpaceGb = minFreeSpaceEdit.text.toString().toDoubleOrNull()
 
         if (start == null || end == null) {
-            showValidationError("日時は yyyy-MM-dd HH:mm 形式で指定してください。")
+            showValidationError(getString(R.string.validation_datetime_format))
             return null
         }
         if (end < start) {
-            showValidationError("終了日時は開始日時以降にしてください。")
+            showValidationError(getString(R.string.validation_end_after_start))
             return null
         }
         if (end < System.currentTimeMillis()) {
-            showValidationError("終了日時は現在より後にしてください。")
+            showValidationError(getString(R.string.validation_end_future))
             return null
         }
         if (intervalValue == null || intervalValue <= 0L) {
-            showValidationError("撮影間隔は1以上にしてください。")
+            showValidationError(getString(R.string.validation_interval_positive))
             return null
         }
         if (jpegQuality == null || jpegQuality !in 1..100) {
-            showValidationError("JPEG品質は1から100で指定してください。")
+            showValidationError(getString(R.string.validation_jpeg_quality))
             return null
         }
         if (minBattery == null || minBattery !in 0..100) {
-            showValidationError("最低バッテリー残量は0から100で指定してください。")
+            showValidationError(getString(R.string.validation_battery))
             return null
         }
         if (minFreeSpaceGb == null || minFreeSpaceGb < 0.0) {
-            showValidationError("最低空き容量は0以上で指定してください。")
+            showValidationError(getString(R.string.validation_free_space))
             return null
         }
 
-        val intervalMillis = intervalValue * if (intervalUnitSpinner.selectedItem.toString() == "時間") {
+        val intervalMillis = intervalValue * if (intervalUnitSpinner.selectedItemPosition == 0) {
             60L * 60L * 1000L
         } else {
             60L * 1000L
@@ -402,15 +404,15 @@ class MainActivity : android.app.Activity() {
     private fun refreshStatus() {
         val config = recoverStaleRunningSession(repository.getSession())
         val status = config?.status ?: SessionStatus.NOT_CONFIGURED
-        statusText.text = "現在の状態: ${statusLabel(status)}"
-        nextCaptureText.text = "次回撮影: ${TimeUtils.formatDisplay(config?.nextCaptureTimeMillis)}"
-        countText.text = "撮影済み枚数: ${config?.capturedCount ?: 0}"
-        lastCaptureText.text = "最後の撮影: ${TimeUtils.formatDisplay(config?.lastCaptureTimeMillis)}"
-        lastResultText.text = "最後の結果: ${config?.lastResult ?: "-"}"
-        pathText.text = "保存先: ${config?.saveDirectory ?: "-"}"
-        batteryText.text = "バッテリー: ${BatteryUtils.batteryPercent(this)}%"
+        statusText.text = statusLineText(R.string.label_current_status, statusLabel(status))
+        nextCaptureText.text = statusLineText(R.string.label_next_capture, TimeUtils.formatDisplay(config?.nextCaptureTimeMillis))
+        countText.text = statusLineText(R.string.label_captured_count, (config?.capturedCount ?: 0).toString())
+        lastCaptureText.text = statusLineText(R.string.label_last_capture, TimeUtils.formatDisplay(config?.lastCaptureTimeMillis))
+        lastResultText.text = statusLineText(R.string.label_last_result, config?.lastResult ?: "-")
+        pathText.text = statusLineText(R.string.label_save_location, config?.saveDirectory ?: "-")
+        batteryText.text = statusLineText(R.string.label_battery, "${BatteryUtils.batteryPercent(this)}%")
         val base = config?.saveDirectory?.let { File(it) } ?: storageManager.baseDirectory()
-        storageText.text = "空き容量: ${formatBytes(StorageUtils.freeSpaceBytes(base))}"
+        storageText.text = statusLineText(R.string.label_free_space, formatBytes(StorageUtils.freeSpaceBytes(base)))
         updateButtonStates(config)
     }
 
@@ -478,9 +480,9 @@ class MainActivity : android.app.Activity() {
             setPadding(dp(16), dp(12), dp(16), dp(12))
         }
 
-        if (logText == null || logText == "ログはまだありません。") {
+        if (logText == null) {
             container.addView(TextView(this).apply {
-                text = "ログはまだありません。"
+                text = getString(R.string.no_log)
                 textSize = 15f
             })
         } else {
@@ -491,7 +493,7 @@ class MainActivity : android.app.Activity() {
 
             if (rows.isEmpty()) {
                 container.addView(TextView(this).apply {
-                    text = "ログはまだありません。"
+                    text = getString(R.string.no_log)
                     textSize = 15f
                 })
             } else {
@@ -507,14 +509,14 @@ class MainActivity : android.app.Activity() {
         AlertDialog.Builder(this)
             .setTitle("capture_log.csv")
             .setView(scroll)
-            .setPositiveButton("閉じる", null)
+            .setPositiveButton(getString(R.string.button_close), null)
             .show()
     }
 
     private fun openSaveFolder() {
         val directory = currentSaveDirectory()
         if (directory == null) {
-            Toast.makeText(this, "保存先はまだありません。", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.no_save_location), Toast.LENGTH_LONG).show()
             return
         }
         startActivity(Intent(this, FolderActivity::class.java).putExtra(FolderActivity.EXTRA_DIRECTORY, directory.absolutePath))
@@ -523,7 +525,7 @@ class MainActivity : android.app.Activity() {
     private fun openLatestImage() {
         val storedFile = latestImageFile()
         if (storedFile == null) {
-            Toast.makeText(this, "開ける画像はまだありません。", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.no_openable_image), Toast.LENGTH_LONG).show()
             return
         }
         openImageFile(storedFile)
@@ -548,7 +550,7 @@ class MainActivity : android.app.Activity() {
             runCatching {
                 startActivity(fallback)
             }.onFailure {
-                Toast.makeText(this, "画像を開けるアプリが見つかりません。", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, getString(R.string.no_image_app), Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -645,11 +647,11 @@ class MainActivity : android.app.Activity() {
         val error = listOf(columns[7], columns[8]).filter { it.isNotBlank() }.joinToString(": ")
         val body = buildString {
             appendLine("${index}. ${columns[3]}")
-            appendLine("予定: ${columns[1]}")
-            appendLine("実行: ${columns[2]}")
-            appendLine("画像: $fileName")
-            appendLine("電池: ${columns[5].ifBlank { "-" }}% / 空き: ${formatBytes(columns[6].toLongOrNull() ?: 0L)}")
-            if (error.isNotBlank()) append("エラー: $error")
+            appendLine(getString(R.string.log_row_scheduled, columns[1]))
+            appendLine(getString(R.string.log_row_actual, columns[2]))
+            appendLine(getString(R.string.log_row_image, fileName))
+            appendLine(getString(R.string.log_row_battery_storage, columns[5].ifBlank { "-" }, formatBytes(columns[6].toLongOrNull() ?: 0L)))
+            if (error.isNotBlank()) append(getString(R.string.log_row_error, error))
         }
 
         return TextView(this).apply {
@@ -717,14 +719,10 @@ class MainActivity : android.app.Activity() {
         if (prefs.getBoolean("battery_guidance_seen", false)) return
         prefs.edit().putBoolean("battery_guidance_seen", true).apply()
         AlertDialog.Builder(this)
-            .setTitle("長時間運用の注意")
-            .setMessage(
-                "このアプリは長時間の定期撮影を行います。\n\n" +
-                    "端末の省電力機能により、画面オフ中や長時間放置中に撮影が遅延または停止する場合があります。\n\n" +
-                    "安定運用のため、バッテリー最適化から除外し、充電しながら使用してください。"
-            )
-            .setPositiveButton("OK", null)
-            .setNeutralButton("省電力設定を開く") { _, _ ->
+            .setTitle(getString(R.string.battery_guidance_title))
+            .setMessage(getString(R.string.battery_guidance_message))
+            .setPositiveButton(getString(R.string.button_ok), null)
+            .setNeutralButton(getString(R.string.button_open_power_settings)) { _, _ ->
                 runCatching {
                     startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
                 }
@@ -811,11 +809,15 @@ class MainActivity : android.app.Activity() {
 
     private fun statusLine(parent: LinearLayout, label: String): TextView {
         return TextView(this).apply {
-            text = "$label: -"
+            text = getString(R.string.status_line, label, "-")
             textSize = 13f
             setPadding(0, dp(1), 0, dp(1))
             parent.addView(this)
         }
+    }
+
+    private fun statusLineText(labelResId: Int, value: String): String {
+        return getString(R.string.status_line, getString(labelResId), value)
     }
 
     private fun sectionTitle(text: String): TextView {
@@ -866,9 +868,9 @@ class MainActivity : android.app.Activity() {
 
     private fun showValidationError(message: String) {
         AlertDialog.Builder(this)
-            .setTitle("設定を確認してください")
+            .setTitle(getString(R.string.validation_title))
             .setMessage(message)
-            .setPositiveButton("OK", null)
+            .setPositiveButton(getString(R.string.button_ok), null)
             .show()
     }
 
@@ -900,21 +902,21 @@ class MainActivity : android.app.Activity() {
         val hour = 60L * 60L * 1000L
         val minute = 60L * 1000L
         return if (intervalMillis % hour == 0L) {
-            "${intervalMillis / hour}時間"
+            getString(R.string.interval_hours, intervalMillis / hour)
         } else {
-            "${intervalMillis / minute}分"
+            getString(R.string.interval_minutes, intervalMillis / minute)
         }
     }
 
     private fun statusLabel(status: SessionStatus): String {
         return when (status) {
-            SessionStatus.NOT_CONFIGURED -> "未設定"
-            SessionStatus.WAITING -> "待機中"
-            SessionStatus.RUNNING -> "撮影中"
-            SessionStatus.PAUSED -> "一時停止中"
-            SessionStatus.COMPLETED -> "完了"
-            SessionStatus.ERROR -> "エラー停止"
-            SessionStatus.STOPPED -> "停止"
+            SessionStatus.NOT_CONFIGURED -> getString(R.string.status_not_configured)
+            SessionStatus.WAITING -> getString(R.string.status_waiting)
+            SessionStatus.RUNNING -> getString(R.string.status_running)
+            SessionStatus.PAUSED -> getString(R.string.status_paused)
+            SessionStatus.COMPLETED -> getString(R.string.status_completed)
+            SessionStatus.ERROR -> getString(R.string.status_error)
+            SessionStatus.STOPPED -> getString(R.string.status_stopped)
         }
     }
 

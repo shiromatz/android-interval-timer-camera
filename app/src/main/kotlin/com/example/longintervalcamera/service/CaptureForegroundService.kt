@@ -347,10 +347,10 @@ class CaptureForegroundService : Service() {
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "LongIntervalCamera",
+            getString(R.string.app_name),
             NotificationManager.IMPORTANCE_LOW
         ).apply {
-            description = "LongIntervalCamera capture session status"
+            description = getString(R.string.notification_channel_description)
             setShowBadge(false)
         }
         notificationManager().createNotificationChannel(channel)
@@ -376,14 +376,18 @@ class CaptureForegroundService : Service() {
     private fun buildNotification(config: SessionConfig?): Notification {
         val status = config?.status ?: SessionStatus.NOT_CONFIGURED
         val text = if (config == null) {
-            "セッション未設定"
+            getString(R.string.notification_no_session)
         } else {
-            "次回撮影: ${TimeUtils.formatDisplay(config.nextCaptureTimeMillis)} / 撮影済み: ${config.capturedCount}枚"
+            getString(
+                R.string.notification_status_text,
+                TimeUtils.formatDisplay(config.nextCaptureTimeMillis),
+                config.capturedCount
+            )
         }
 
         return Notification.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_camera)
-            .setContentTitle("LongIntervalCamera ${statusLabel(status)}")
+            .setContentTitle(getString(R.string.notification_title, statusLabel(status)))
             .setContentText(text)
             .setStyle(Notification.BigTextStyle().bigText(text))
             .setOngoing(status == SessionStatus.WAITING || status == SessionStatus.RUNNING)
@@ -391,14 +395,14 @@ class CaptureForegroundService : Service() {
             .addAction(
                 Notification.Action.Builder(
                     R.drawable.ic_pause,
-                    "一時停止",
+                    getString(R.string.button_pause),
                     servicePendingIntent(ACTION_PAUSE, REQUEST_PAUSE)
                 ).build()
             )
             .addAction(
                 Notification.Action.Builder(
                     R.drawable.ic_stop,
-                    "停止",
+                    getString(R.string.button_stop),
                     servicePendingIntent(ACTION_STOP, REQUEST_STOP)
                 ).build()
             )
@@ -407,13 +411,13 @@ class CaptureForegroundService : Service() {
 
     private fun statusLabel(status: SessionStatus): String {
         return when (status) {
-            SessionStatus.NOT_CONFIGURED -> "未設定"
-            SessionStatus.WAITING -> "待機中"
-            SessionStatus.RUNNING -> "撮影中"
-            SessionStatus.PAUSED -> "一時停止中"
-            SessionStatus.COMPLETED -> "完了"
-            SessionStatus.ERROR -> "エラー停止"
-            SessionStatus.STOPPED -> "停止"
+            SessionStatus.NOT_CONFIGURED -> getString(R.string.status_not_configured)
+            SessionStatus.WAITING -> getString(R.string.status_waiting)
+            SessionStatus.RUNNING -> getString(R.string.status_running)
+            SessionStatus.PAUSED -> getString(R.string.status_paused)
+            SessionStatus.COMPLETED -> getString(R.string.status_completed)
+            SessionStatus.ERROR -> getString(R.string.status_error)
+            SessionStatus.STOPPED -> getString(R.string.status_stopped)
         }
     }
 

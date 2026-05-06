@@ -1,4 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">LongIntervalCamera</string>
+    <string name="app_subtitle">Long interval capture</string>
+
+    <string-array name="interval_units">
+        <item>hours</item>
+        <item>minutes</item>
+    </string-array>
+
+    <string name="section_settings">Settings</string>
+    <string name="section_status">Status</string>
+    <string name="section_actions">Actions</string>
+    <string name="label_start_datetime">Start date/time</string>
+    <string name="label_end_datetime">End date/time</string>
+    <string name="hint_interval">Interval</string>
+    <string name="label_capture_interval">Capture interval</string>
+    <string name="label_jpeg_quality">JPEG quality</string>
+    <string name="label_save_folder_name">Save folder name</string>
+    <string name="label_min_battery_percent">Minimum battery</string>
+    <string name="label_min_free_space_gb">Minimum free space (GB)</string>
+    <string name="label_blackout_mode">Blackout mode</string>
+    <string name="label_current_status">Current status</string>
+    <string name="label_next_capture">Next capture</string>
+    <string name="label_captured_count">Captured images</string>
+    <string name="label_last_capture">Last capture</string>
+    <string name="label_last_result">Last result</string>
+    <string name="label_save_location">Save location</string>
+    <string name="label_battery">Battery</string>
+    <string name="label_free_space">Free space</string>
+    <string name="status_line">%1$s: %2$s</string>
+
+    <string name="button_start_capture">Start capture</string>
+    <string name="button_pause">Pause</string>
+    <string name="button_resume">Resume</string>
+    <string name="button_stop">Stop</string>
+    <string name="button_blackout_display">Blackout display</string>
+    <string name="button_show_log">Show log</string>
+    <string name="button_open_latest_image">Open latest image</string>
+    <string name="button_open_save_folder">Open save folder</string>
+    <string name="button_start">Start</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="button_close">Close</string>
+    <string name="button_ok">OK</string>
+    <string name="button_open_power_settings">Open power settings</string>
+
+    <string name="permission_required">Camera and notification permissions are required.</string>
+    <string name="start_session_title">Start capture session</string>
+    <string name="start_session_message">Start: %1$s\nEnd: %2$s\nInterval: %3$s\nEstimated captures: %4$d\n\nA notification will be shown during capture. Device power-saving settings may delay captures.</string>
+    <string name="no_resumable_session">There is no unfinished session to resume.</string>
+    <string name="stop_session_title">Stop capture session?</string>
+    <string name="stop_session_message">Captured images and logs will remain after stopping.</string>
+
+    <string name="validation_datetime_format">Use yyyy-MM-dd HH:mm for date/time.</string>
+    <string name="validation_end_after_start">End date/time must be after start date/time.</string>
+    <string name="validation_end_future">End date/time must be in the future.</string>
+    <string name="validation_interval_positive">Capture interval must be 1 or greater.</string>
+    <string name="validation_jpeg_quality">JPEG quality must be between 1 and 100.</string>
+    <string name="validation_battery">Minimum battery must be between 0 and 100.</string>
+    <string name="validation_free_space">Minimum free space must be 0 or greater.</string>
+    <string name="validation_title">Check settings</string>
+
+    <string name="no_log">No log yet.</string>
+    <string name="no_save_location">No save location yet.</string>
+    <string name="no_openable_image">No image is available to open yet.</string>
+    <string name="no_image_app">No app was found to open the image.</string>
+    <string name="log_row_scheduled">Scheduled: %1$s</string>
+    <string name="log_row_actual">Actual: %1$s</string>
+    <string name="log_row_image">Image: %1$s</string>
+    <string name="log_row_battery_storage">Battery: %1$s%% / Free: %2$s</string>
+    <string name="log_row_error">Error: %1$s</string>
+
+    <string name="battery_guidance_title">Long-running capture note</string>
+    <string name="battery_guidance_message">This app performs scheduled capture over long periods.\n\nDevice power-saving features may delay or stop capture while the screen is off or the device is idle for a long time.\n\nFor stable operation, exclude this app from battery optimization and keep the device charging.</string>
+
+    <string name="interval_hours">%1$d hours</string>
+    <string name="interval_minutes">%1$d minutes</string>
+
+    <string name="status_not_configured">Not configured</string>
+    <string name="status_waiting">Waiting</string>
+    <string name="status_running">Capturing</string>
+    <string name="status_paused">Paused</string>
+    <string name="status_completed">Completed</string>
+    <string name="status_error">Stopped with error</string>
+    <string name="status_stopped">Stopped</string>
+
+    <string name="blackout_status_details">Status: %1$s\nNext: %2$s\nCaptured: %3$d\nLast: %4$s\nResult: %5$s\n\nLong-press to close blackout screen</string>
+    <string name="blackout_capturing">Capturing</string>
+    <string name="blackout_close_title">Close blackout screen?</string>
+    <string name="blackout_close_message">The capture session will continue.</string>
+
+    <string name="folder_title">Save folder</string>
+    <string name="folder_copy_path">Copy path</string>
+    <string name="folder_path_copied">Path copied.</string>
+    <string name="folder_refresh">Refresh</string>
+    <string name="folder_file_count">%1$d files</string>
+    <string name="folder_no_files">No files yet.</string>
+    <string name="folder_open">Open</string>
+    <string name="folder_share">Share</string>
+    <string name="folder_delete">Delete</string>
+    <string name="folder_no_file_app">No app was found to open this file.</string>
+    <string name="folder_no_share_app">No app was found to share this file.</string>
+    <string name="folder_delete_title">Delete this file?</string>
+    <string name="folder_deleted">Deleted.</string>
+    <string name="folder_delete_failed">Could not delete.</string>
+
+    <string name="notification_channel_description">LongIntervalCamera capture session status</string>
+    <string name="notification_no_session">No session configured</string>
+    <string name="notification_status_text">Next capture: %1$s / Captured: %2$d</string>
+    <string name="notification_title">LongIntervalCamera %1$s</string>
 </resources>

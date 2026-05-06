@@ -93,16 +93,18 @@ class BlackoutActivity : android.app.Activity() {
         statusText.setTextColor(if (isVisible) VISIBLE_TEXT_COLOR else DIM_TEXT_COLOR)
         statusText.textSize = if (isVisible) 18f else 11f
         statusText.text = if (session == null) {
-            if (isVisible) "未設定" else ""
+            if (isVisible) getString(R.string.status_not_configured) else ""
         } else if (isVisible) {
-            "状態: ${statusLabel(session.status)}\n" +
-                "次回: ${TimeUtils.formatDisplay(session.nextCaptureTimeMillis)}\n" +
-                "撮影済み: ${session.capturedCount}枚\n" +
-                "最後: ${TimeUtils.formatDisplay(session.lastCaptureTimeMillis)}\n" +
-                "結果: ${session.lastResult ?: "-"}\n\n" +
-                "長押しで黒画面を閉じる"
+            getString(
+                R.string.blackout_status_details,
+                statusLabel(session.status),
+                TimeUtils.formatDisplay(session.nextCaptureTimeMillis),
+                session.capturedCount,
+                TimeUtils.formatDisplay(session.lastCaptureTimeMillis),
+                session.lastResult ?: "-"
+            )
         } else {
-            "撮影中"
+            getString(R.string.blackout_capturing)
         }
     }
 
@@ -131,10 +133,10 @@ class BlackoutActivity : android.app.Activity() {
 
     private fun confirmExit() {
         AlertDialog.Builder(this)
-            .setTitle("黒画面を閉じますか？")
-            .setMessage("撮影セッションは継続します。")
-            .setPositiveButton("閉じる") { _, _ -> finish() }
-            .setNegativeButton("キャンセル", null)
+            .setTitle(getString(R.string.blackout_close_title))
+            .setMessage(getString(R.string.blackout_close_message))
+            .setPositiveButton(getString(R.string.button_close)) { _, _ -> finish() }
+            .setNegativeButton(getString(R.string.button_cancel), null)
             .show()
     }
 
@@ -150,13 +152,13 @@ class BlackoutActivity : android.app.Activity() {
 
     private fun statusLabel(status: SessionStatus): String {
         return when (status) {
-            SessionStatus.NOT_CONFIGURED -> "未設定"
-            SessionStatus.WAITING -> "待機中"
-            SessionStatus.RUNNING -> "撮影中"
-            SessionStatus.PAUSED -> "一時停止中"
-            SessionStatus.COMPLETED -> "完了"
-            SessionStatus.ERROR -> "エラー停止"
-            SessionStatus.STOPPED -> "停止"
+            SessionStatus.NOT_CONFIGURED -> getString(R.string.status_not_configured)
+            SessionStatus.WAITING -> getString(R.string.status_waiting)
+            SessionStatus.RUNNING -> getString(R.string.status_running)
+            SessionStatus.PAUSED -> getString(R.string.status_paused)
+            SessionStatus.COMPLETED -> getString(R.string.status_completed)
+            SessionStatus.ERROR -> getString(R.string.status_error)
+            SessionStatus.STOPPED -> getString(R.string.status_stopped)
         }
     }
 

@@ -38,13 +38,13 @@ class CaptureLogger(private val storageManager: ImageStorageManager) {
         runCatching { storageManager.appendLog(config, text) }
     }
 
-    fun readTail(config: SessionConfig, maxLines: Int = 200): String {
+    fun readTail(config: SessionConfig, maxLines: Int = 200): String? {
         val lines = storageManager.readLogText(config)
             ?.lineSequence()
             ?.filter { it.isNotBlank() }
             ?.toList()
             .orEmpty()
-        if (lines.isEmpty()) return "ログはまだありません。"
+        if (lines.isEmpty()) return null
         return lines.takeLast(maxLines).joinToString("\n")
     }
 

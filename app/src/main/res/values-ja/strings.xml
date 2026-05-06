@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LongIntervalCamera</string>
+    <string name="app_subtitle">長期インターバル撮影</string>
+
+    <string-array name="interval_units">
+        <item>時間</item>
+        <item>分</item>
+    </string-array>
+
+    <string name="section_settings">設定</string>
+    <string name="section_status">状態</string>
+    <string name="section_actions">操作</string>
+    <string name="label_start_datetime">撮影開始日時</string>
+    <string name="label_end_datetime">撮影終了日時</string>
+    <string name="hint_interval">間隔</string>
+    <string name="label_capture_interval">撮影間隔</string>
+    <string name="label_jpeg_quality">JPEG品質</string>
+    <string name="label_save_folder_name">保存先フォルダ名</string>
+    <string name="label_min_battery_percent">最低バッテリー残量</string>
+    <string name="label_min_free_space_gb">最低空き容量(GB)</string>
+    <string name="label_blackout_mode">画面暗転モード</string>
+    <string name="label_current_status">現在の状態</string>
+    <string name="label_next_capture">次回撮影</string>
+    <string name="label_captured_count">撮影済み枚数</string>
+    <string name="label_last_capture">最後の撮影</string>
+    <string name="label_last_result">最後の結果</string>
+    <string name="label_save_location">保存先</string>
+    <string name="label_battery">バッテリー</string>
+    <string name="label_free_space">空き容量</string>
+    <string name="status_line">%1$s: %2$s</string>
+
+    <string name="button_start_capture">撮影開始</string>
+    <string name="button_pause">一時停止</string>
+    <string name="button_resume">再開</string>
+    <string name="button_stop">停止</string>
+    <string name="button_blackout_display">黒画面表示</string>
+    <string name="button_show_log">ログ表示</string>
+    <string name="button_open_latest_image">最新画像を開く</string>
+    <string name="button_open_save_folder">保存フォルダを開く</string>
+    <string name="button_start">開始</string>
+    <string name="button_cancel">キャンセル</string>
+    <string name="button_close">閉じる</string>
+    <string name="button_ok">OK</string>
+    <string name="button_open_power_settings">省電力設定を開く</string>
+
+    <string name="permission_required">カメラと通知の権限が必要です。</string>
+    <string name="start_session_title">撮影セッションを開始します</string>
+    <string name="start_session_message">開始: %1$s\n終了: %2$s\n間隔: %3$s\n推定撮影枚数: %4$d枚\n\n撮影中は通知が表示されます。端末の省電力設定により撮影時刻が遅れる場合があります。</string>
+    <string name="no_resumable_session">再開できる未完了セッションがありません。</string>
+    <string name="stop_session_title">撮影セッションを停止しますか？</string>
+    <string name="stop_session_message">停止後も撮影済み画像とログは保存されます。</string>
+
+    <string name="validation_datetime_format">日時は yyyy-MM-dd HH:mm 形式で指定してください。</string>
+    <string name="validation_end_after_start">終了日時は開始日時以降にしてください。</string>
+    <string name="validation_end_future">終了日時は現在より後にしてください。</string>
+    <string name="validation_interval_positive">撮影間隔は1以上にしてください。</string>
+    <string name="validation_jpeg_quality">JPEG品質は1から100で指定してください。</string>
+    <string name="validation_battery">最低バッテリー残量は0から100で指定してください。</string>
+    <string name="validation_free_space">最低空き容量は0以上で指定してください。</string>
+    <string name="validation_title">設定を確認してください</string>
+
+    <string name="no_log">ログはまだありません。</string>
+    <string name="no_save_location">保存先はまだありません。</string>
+    <string name="no_openable_image">開ける画像はまだありません。</string>
+    <string name="no_image_app">画像を開けるアプリが見つかりません。</string>
+    <string name="log_row_scheduled">予定: %1$s</string>
+    <string name="log_row_actual">実行: %1$s</string>
+    <string name="log_row_image">画像: %1$s</string>
+    <string name="log_row_battery_storage">電池: %1$s%% / 空き: %2$s</string>
+    <string name="log_row_error">エラー: %1$s</string>
+
+    <string name="battery_guidance_title">長時間運用の注意</string>
+    <string name="battery_guidance_message">このアプリは長時間の定期撮影を行います。\n\n端末の省電力機能により、画面オフ中や長時間放置中に撮影が遅延または停止する場合があります。\n\n安定運用のため、バッテリー最適化から除外し、充電しながら使用してください。</string>
+
+    <string name="interval_hours">%1$d時間</string>
+    <string name="interval_minutes">%1$d分</string>
+
+    <string name="status_not_configured">未設定</string>
+    <string name="status_waiting">待機中</string>
+    <string name="status_running">撮影中</string>
+    <string name="status_paused">一時停止中</string>
+    <string name="status_completed">完了</string>
+    <string name="status_error">エラー停止</string>
+    <string name="status_stopped">停止</string>
+
+    <string name="blackout_status_details">状態: %1$s\n次回: %2$s\n撮影済み: %3$d枚\n最後: %4$s\n結果: %5$s\n\n長押しで黒画面を閉じる</string>
+    <string name="blackout_capturing">撮影中</string>
+    <string name="blackout_close_title">黒画面を閉じますか？</string>
+    <string name="blackout_close_message">撮影セッションは継続します。</string>
+
+    <string name="folder_title">保存フォルダ</string>
+    <string name="folder_copy_path">パスをコピー</string>
+    <string name="folder_path_copied">パスをコピーしました。</string>
+    <string name="folder_refresh">更新</string>
+    <string name="folder_file_count">%1$d ファイル</string>
+    <string name="folder_no_files">ファイルはまだありません。</string>
+    <string name="folder_open">開く</string>
+    <string name="folder_share">共有</string>
+    <string name="folder_delete">削除</string>
+    <string name="folder_no_file_app">このファイルを開けるアプリが見つかりません。</string>
+    <string name="folder_no_share_app">共有できるアプリが見つかりません。</string>
+    <string name="folder_delete_title">ファイルを削除しますか？</string>
+    <string name="folder_deleted">削除しました。</string>
+    <string name="folder_delete_failed">削除できませんでした。</string>
+
+    <string name="notification_channel_description">LongIntervalCamera capture session status</string>
+    <string name="notification_no_session">セッション未設定</string>
+    <string name="notification_status_text">次回撮影: %1$s / 撮影済み: %2$d枚</string>
+    <string name="notification_title">LongIntervalCamera %1$s</string>
+</resources>

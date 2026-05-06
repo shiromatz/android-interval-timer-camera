@@ -41,7 +41,7 @@ class FolderActivity : android.app.Activity() {
         }
 
         root.addView(TextView(this).apply {
-            text = "保存フォルダ"
+            text = getString(R.string.folder_title)
             textSize = 21f
             setTypeface(typeface, Typeface.BOLD)
         })
@@ -52,27 +52,27 @@ class FolderActivity : android.app.Activity() {
             setPadding(0, dp(6), 0, dp(8))
         })
 
-        root.addView(compactButton("パスをコピー") {
+        root.addView(compactButton(getString(R.string.folder_copy_path)) {
             getSystemService(ClipboardManager::class.java)
                 .setPrimaryClip(ClipData.newPlainText("LongIntervalCamera folder", directory.absolutePath))
-            Toast.makeText(this@FolderActivity, "パスをコピーしました。", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@FolderActivity, getString(R.string.folder_path_copied), Toast.LENGTH_SHORT).show()
         })
 
-        root.addView(compactButton("更新") {
+        root.addView(compactButton(getString(R.string.folder_refresh)) {
             setContentView(buildContent())
         })
 
         val files = storageManager.listFiles(directory)
 
         root.addView(TextView(this).apply {
-            text = "${files.size} ファイル"
+            text = getString(R.string.folder_file_count, files.size)
             textSize = 15f
             setTypeface(typeface, Typeface.BOLD)
             setPadding(0, dp(14), 0, dp(6))
         })
 
         if (files.isEmpty()) {
-            root.addView(message("ファイルはまだありません。"))
+            root.addView(message(getString(R.string.folder_no_files)))
         } else {
             files.forEach { storedFile ->
                 root.addView(fileRow(storedFile))
@@ -132,9 +132,9 @@ class FolderActivity : android.app.Activity() {
         root.addView(LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            addView(fileActionButton("開く") { openFile(storedFile) })
-            addView(fileActionButton("共有") { shareFile(storedFile) })
-            addView(fileActionButton("削除") { confirmDelete(storedFile) })
+            addView(fileActionButton(getString(R.string.folder_open)) { openFile(storedFile) })
+            addView(fileActionButton(getString(R.string.folder_share)) { shareFile(storedFile) })
+            addView(fileActionButton(getString(R.string.folder_delete)) { confirmDelete(storedFile) })
         })
 
         return root
@@ -170,7 +170,7 @@ class FolderActivity : android.app.Activity() {
             runCatching {
                 startActivity(fallback)
             }.onFailure {
-                Toast.makeText(this, "このファイルを開けるアプリが見つかりません。", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, getString(R.string.folder_no_file_app), Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -185,23 +185,23 @@ class FolderActivity : android.app.Activity() {
         runCatching {
             startActivity(Intent.createChooser(intent, storedFile.name))
         }.onFailure {
-            Toast.makeText(this, "共有できるアプリが見つかりません。", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.folder_no_share_app), Toast.LENGTH_LONG).show()
         }
     }
 
     private fun confirmDelete(storedFile: StoredFile) {
         AlertDialog.Builder(this)
-            .setTitle("ファイルを削除しますか？")
+            .setTitle(getString(R.string.folder_delete_title))
             .setMessage(storedFile.name)
-            .setPositiveButton("削除") { _, _ ->
+            .setPositiveButton(getString(R.string.folder_delete)) { _, _ ->
                 if (deleteFile(storedFile)) {
-                    Toast.makeText(this, "削除しました。", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.folder_deleted), Toast.LENGTH_SHORT).show()
                     setContentView(buildContent())
                 } else {
-                    Toast.makeText(this, "削除できませんでした。", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, getString(R.string.folder_delete_failed), Toast.LENGTH_LONG).show()
                 }
             }
-            .setNegativeButton("キャンセル", null)
+            .setNegativeButton(getString(R.string.button_cancel), null)
             .show()
     }
 
