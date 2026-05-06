@@ -73,13 +73,13 @@ adb devices -l
 
 ## 保存先
 
-初期版ではアプリ専用外部ストレージに保存します。
+撮影画像は共有Pictures配下に保存します。
 
 ```text
-Android/data/com.example.longintervalcamera/files/Pictures/LongIntervalCamera/{session_id}/
+Pictures/LongIntervalCamera/{session_id}/
 ```
 
-各セッションフォルダにはJPEG画像と `capture_log.csv` が保存されます。
+各セッションフォルダにはJPEG画像が保存されます。Google Filesなどのファイル管理アプリからも参照できます。CSVログはアプリ内の `ログ表示` から確認できます。
 
 画像ファイル名:
 

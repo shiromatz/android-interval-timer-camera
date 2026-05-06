@@ -1,8 +1,12 @@
 package com.example.longintervalcamera.camera
 
+import android.content.ContentValues
 import android.content.Context
+import android.net.Uri
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.provider.MediaStore
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -11,6 +15,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import com.example.longintervalcamera.data.CaptureResult
+import com.example.longintervalcamera.storage.ImageCaptureTarget
 import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -26,9 +31,11 @@ class CameraCaptureManager(private val context: Context) {
     private val mainExecutor = java.util.concurrent.Executor { command -> mainHandler.post(command) }
     private val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
 
-    suspend fun capture(file: File, jpegQuality: Int): CameraCaptureOutcome {
+    suspend fun capture(target: ImageCaptureTarget, jpegQuality: Int): CameraCaptureOutcome {
         return try {
-            file.parentFile?.mkdirs()
+            if (target is ImageCaptureTarget.FileTarget) {
+                target.file.parentFile?.mkdirs()
+            }
             withContext(Dispatchers.Main) {
                 val provider = ProcessCameraProvider.getInstance(context).await(mainExecutor)
                 val lifecycleOwner = OneShotLifecycleOwner()
@@ -45,12 +52,12 @@ class CameraCaptureManager(private val context: Context) {
                     imageCapture
                 )
 
-                imageCapture.takePictureAwait(file, provider, lifecycleOwner)
+                imageCapture.takePictureAwait(target, provider, lifecycleOwner)
             }
         } catch (exception: Exception) {
             CameraCaptureOutcome(
                 result = CaptureResult.FAILED_CAMERA_INIT,
-                file = file,
+                file = target.file,
                 errorType = exception::class.java.simpleName,
                 errorMessage = exception.message ?: "Camera initialization failed"
             )
@@ -62,11 +69,18 @@ class CameraCaptureManager(private val context: Context) {
     }
 
     private suspend fun ImageCapture.takePictureAwait(
-        file: File,
+        target: ImageCaptureTarget,
         provider: ProcessCameraProvider,
         lifecycleOwner: OneShotLifecycleOwner
     ): CameraCaptureOutcome {
-        val outputOptions = ImageCapture.OutputFileOptions.Builder(file).build()
+        val outputOptions = when (target) {
+            is ImageCaptureTarget.FileTarget -> ImageCapture.OutputFileOptions.Builder(target.file).build()
+            is ImageCaptureTarget.MediaStoreTarget -> ImageCapture.OutputFileOptions.Builder(
+                context.contentResolver,
+                target.collectionUri,
+                target.contentValues
+            ).build()
+        }
         return suspendCancellableCoroutine { continuation ->
             val cleanup = {
                 provider.unbindAll()
@@ -81,7 +95,15 @@ class CameraCaptureManager(private val context: Context) {
                         mainHandler.post {
                             cleanup()
                             if (continuation.isActive) {
-                                continuation.resume(CameraCaptureOutcome(CaptureResult.SUCCESS, file))
+                                val savedUri = outputFileResults.savedUri
+                                clearPending(target, savedUri)
+                                continuation.resume(
+                                    CameraCaptureOutcome(
+                                        result = CaptureResult.SUCCESS,
+                                        file = target.file,
+                                        uri = savedUri
+                                    )
+                                )
                             }
                         }
                     }
@@ -97,7 +119,7 @@ class CameraCaptureManager(private val context: Context) {
                                         } else {
                                             CaptureResult.FAILED_CAPTURE
                                         },
-                                        file = file,
+                                        file = target.file,
                                         errorType = exception::class.java.simpleName,
                                         errorMessage = exception.message ?: "Capture failed"
                                     )
@@ -112,6 +134,16 @@ class CameraCaptureManager(private val context: Context) {
                 mainHandler.post { cleanup() }
             }
         }
+    }
+
+    private fun clearPending(target: ImageCaptureTarget, savedUri: Uri?) {
+        if (target !is ImageCaptureTarget.MediaStoreTarget || savedUri == null) return
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
+
+        val values = ContentValues().apply {
+            put(MediaStore.MediaColumns.IS_PENDING, 0)
+        }
+        runCatching { context.contentResolver.update(savedUri, values, null, null) }
     }
 
     private suspend fun <T> ListenableFuture<T>.await(executor: java.util.concurrent.Executor): T {
@@ -151,6 +183,7 @@ class CameraCaptureManager(private val context: Context) {
 data class CameraCaptureOutcome(
     val result: CaptureResult,
     val file: File?,
+    val uri: Uri? = null,
     val errorType: String? = null,
     val errorMessage: String? = null
 )

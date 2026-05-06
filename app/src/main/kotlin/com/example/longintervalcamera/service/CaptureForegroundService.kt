@@ -34,7 +34,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import java.io.File
 
 class CaptureForegroundService : Service() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -236,12 +235,12 @@ class CaptureForegroundService : Service() {
                 return
             }
 
-            val targetFile = storageManager.imageFile(runningConfig, actualTime)
+            val target = storageManager.imageTarget(runningConfig, actualTime)
             val outcome = withTimeoutOrNull(CAPTURE_TIMEOUT_MILLIS) {
-                cameraCaptureManager.capture(targetFile, runningConfig.jpegQuality)
+                cameraCaptureManager.capture(target, runningConfig.jpegQuality)
             } ?: CameraCaptureOutcome(
                 result = CaptureResult.FAILED_CAPTURE,
-                file = targetFile,
+                file = target.file,
                 errorType = "CaptureTimeout",
                 errorMessage = "Capture did not finish within ${CAPTURE_TIMEOUT_MILLIS / 1000} seconds"
             )

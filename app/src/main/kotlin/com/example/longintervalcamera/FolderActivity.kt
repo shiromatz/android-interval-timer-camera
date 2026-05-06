@@ -19,14 +19,18 @@ import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.longintervalcamera.storage.ImageStorageManager
+import com.example.longintervalcamera.storage.StoredFile
 import java.io.File
 
 class FolderActivity : android.app.Activity() {
     private lateinit var directory: File
+    private lateinit var storageManager: ImageStorageManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         directory = File(intent.getStringExtra(EXTRA_DIRECTORY).orEmpty())
+        storageManager = ImageStorageManager(this)
         setContentView(buildContent())
     }
 
@@ -58,10 +62,7 @@ class FolderActivity : android.app.Activity() {
             setContentView(buildContent())
         })
 
-        val files = directory.listFiles()
-            ?.filter { it.isFile }
-            ?.sortedBy { it.name }
-            .orEmpty()
+        val files = storageManager.listFiles(directory)
 
         root.addView(TextView(this).apply {
             text = "${files.size} ファイル"
@@ -70,13 +71,11 @@ class FolderActivity : android.app.Activity() {
             setPadding(0, dp(14), 0, dp(6))
         })
 
-        if (!directory.exists()) {
-            root.addView(message("フォルダはまだ作成されていません。"))
-        } else if (files.isEmpty()) {
+        if (files.isEmpty()) {
             root.addView(message("ファイルはまだありません。"))
         } else {
-            files.forEach { file ->
-                root.addView(fileRow(file))
+            files.forEach { storedFile ->
+                root.addView(fileRow(storedFile))
             }
         }
 
@@ -110,14 +109,14 @@ class FolderActivity : android.app.Activity() {
         }
     }
 
-    private fun fileRow(file: File): View {
+    private fun fileRow(storedFile: StoredFile): View {
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(0, dp(6), 0, dp(6))
             isClickable = true
             isFocusable = true
             setBackgroundResource(android.R.drawable.list_selector_background)
-            setOnClickListener { openFile(file) }
+            setOnClickListener { openFile(storedFile) }
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -125,7 +124,7 @@ class FolderActivity : android.app.Activity() {
         }
 
         root.addView(TextView(this).apply {
-            text = "${file.name}\n${formatBytes(file.length())}"
+            text = "${storedFile.name}\n${formatBytes(storedFile.sizeBytes)}"
             textSize = 13f
             setPadding(0, 0, 0, dp(4))
         })
@@ -133,9 +132,9 @@ class FolderActivity : android.app.Activity() {
         root.addView(LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            addView(fileActionButton("開く") { openFile(file) })
-            addView(fileActionButton("共有") { shareFile(file) })
-            addView(fileActionButton("削除") { confirmDelete(file) })
+            addView(fileActionButton("開く") { openFile(storedFile) })
+            addView(fileActionButton("共有") { shareFile(storedFile) })
+            addView(fileActionButton("削除") { confirmDelete(storedFile) })
         })
 
         return root
@@ -149,23 +148,23 @@ class FolderActivity : android.app.Activity() {
         }
     }
 
-    private fun openFile(file: File) {
-        val uri: Uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+    private fun openFile(storedFile: StoredFile) {
+        val uri = fileUri(storedFile)
         val directIntent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, mimeType(file))
-            if (file.extension.lowercase() in IMAGE_EXTENSIONS) {
+            setDataAndType(uri, mimeType(storedFile))
+            if (storedFile.file.extension.lowercase() in IMAGE_EXTENSIONS) {
                 setPackage(GOOGLE_PHOTOS_PACKAGE)
             }
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        if (file.extension.lowercase() in IMAGE_EXTENSIONS) {
+        if (storedFile.file.extension.lowercase() in IMAGE_EXTENSIONS) {
             grantUriPermission(GOOGLE_PHOTOS_PACKAGE, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         runCatching {
             startActivity(directIntent)
         }.onFailure {
             val fallback = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, mimeType(file))
+                setDataAndType(uri, mimeType(storedFile))
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             runCatching {
@@ -176,26 +175,26 @@ class FolderActivity : android.app.Activity() {
         }
     }
 
-    private fun shareFile(file: File) {
-        val uri: Uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+    private fun shareFile(storedFile: StoredFile) {
+        val uri = fileUri(storedFile)
         val intent = Intent(Intent.ACTION_SEND).apply {
-            type = mimeType(file)
+            type = mimeType(storedFile)
             putExtra(Intent.EXTRA_STREAM, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         runCatching {
-            startActivity(Intent.createChooser(intent, file.name))
+            startActivity(Intent.createChooser(intent, storedFile.name))
         }.onFailure {
             Toast.makeText(this, "共有できるアプリが見つかりません。", Toast.LENGTH_LONG).show()
         }
     }
 
-    private fun confirmDelete(file: File) {
+    private fun confirmDelete(storedFile: StoredFile) {
         AlertDialog.Builder(this)
             .setTitle("ファイルを削除しますか？")
-            .setMessage(file.name)
+            .setMessage(storedFile.name)
             .setPositiveButton("削除") { _, _ ->
-                if (file.delete()) {
+                if (deleteFile(storedFile)) {
                     Toast.makeText(this, "削除しました。", Toast.LENGTH_SHORT).show()
                     setContentView(buildContent())
                 } else {
@@ -204,6 +203,18 @@ class FolderActivity : android.app.Activity() {
             }
             .setNegativeButton("キャンセル", null)
             .show()
+    }
+
+    private fun fileUri(storedFile: StoredFile): Uri {
+        return storedFile.uri ?: FileProvider.getUriForFile(this, "$packageName.fileprovider", storedFile.file)
+    }
+
+    private fun deleteFile(storedFile: StoredFile): Boolean {
+        if (storedFile.uri != null) {
+            val deleted = runCatching { contentResolver.delete(storedFile.uri, null, null) > 0 }.getOrDefault(false)
+            if (deleted) return true
+        }
+        return storedFile.file.delete()
     }
 
     private fun fileActionButton(text: String, onClick: () -> Unit): Button {
@@ -222,9 +233,10 @@ class FolderActivity : android.app.Activity() {
         }
     }
 
-    private fun mimeType(file: File): String {
-        val extension = file.extension.lowercase()
-        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+    private fun mimeType(storedFile: StoredFile): String {
+        val extension = storedFile.file.extension.lowercase()
+        return storedFile.mimeType
+            ?: MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
             ?: when (extension) {
                 "csv" -> "text/csv"
                 "jpg", "jpeg" -> "image/jpeg"

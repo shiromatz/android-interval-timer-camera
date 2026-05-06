@@ -41,6 +41,7 @@ import com.example.longintervalcamera.logging.CaptureLogger
 import com.example.longintervalcamera.scheduler.CaptureAlarmScheduler
 import com.example.longintervalcamera.service.CaptureForegroundService
 import com.example.longintervalcamera.storage.ImageStorageManager
+import com.example.longintervalcamera.storage.StoredFile
 import com.example.longintervalcamera.util.BatteryUtils
 import com.example.longintervalcamera.util.SessionMath
 import com.example.longintervalcamera.util.StorageUtils
@@ -471,20 +472,20 @@ class MainActivity : android.app.Activity() {
 
     private fun showLogDialog() {
         val config = repository.getSession()
-        val logFile = config?.let { storageManager.logFile(it) }
+        val logText = config?.let { logger.readTail(it, LOG_DIALOG_MAX_ROWS + 1) }
         val container = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(16), dp(12), dp(16), dp(12))
         }
 
-        if (logFile == null || !logFile.exists()) {
+        if (logText == null || logText == "ログはまだありません。") {
             container.addView(TextView(this).apply {
                 text = "ログはまだありません。"
                 textSize = 15f
             })
         } else {
-            val rows = logFile.readLines()
-                .drop(1)
+            val rows = logText.lines()
+                .filter { it.isNotBlank() && !it.startsWith("session_id,") }
                 .takeLast(LOG_DIALOG_MAX_ROWS)
                 .mapNotNull { parseCsvLine(it) }
 
@@ -516,24 +517,21 @@ class MainActivity : android.app.Activity() {
             Toast.makeText(this, "保存先はまだありません。", Toast.LENGTH_LONG).show()
             return
         }
-        if (!directory.exists() && !directory.mkdirs()) {
-            Toast.makeText(this, "保存フォルダを作成できませんでした。", Toast.LENGTH_LONG).show()
-            return
-        }
         startActivity(Intent(this, FolderActivity::class.java).putExtra(FolderActivity.EXTRA_DIRECTORY, directory.absolutePath))
     }
 
     private fun openLatestImage() {
-        val file = latestImageFile()
-        if (file == null) {
+        val storedFile = latestImageFile()
+        if (storedFile == null) {
             Toast.makeText(this, "開ける画像はまだありません。", Toast.LENGTH_LONG).show()
             return
         }
-        openImageFile(file)
+        openImageFile(storedFile)
     }
 
-    private fun openImageFile(file: File) {
-        val uri: Uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+    private fun openImageFile(storedFile: StoredFile) {
+        val uri: Uri = storedFile.uri
+            ?: FileProvider.getUriForFile(this, "$packageName.fileprovider", storedFile.file)
         val photosIntent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uri, "image/jpeg")
             setPackage(GOOGLE_PHOTOS_PACKAGE)
@@ -570,11 +568,8 @@ class MainActivity : android.app.Activity() {
         return File(storageManager.baseDirectory(), TimeUtils.sessionIdFor(start))
     }
 
-    private fun latestImageFile(): File? {
-        return currentSaveDirectory()
-            ?.listFiles()
-            ?.filter { it.isFile && it.extension.lowercase() in IMAGE_EXTENSIONS }
-            ?.maxByOrNull { it.name }
+    private fun latestImageFile(): StoredFile? {
+        return currentSaveDirectory()?.let { storageManager.latestImageFile(it) }
     }
 
     private fun setupInputChangeListeners() {
@@ -931,7 +926,6 @@ class MainActivity : android.app.Activity() {
         private const val STALE_RUNNING_TIMEOUT_MILLIS = 90_000L
         private const val LOG_DIALOG_MAX_ROWS = 100
         private const val GOOGLE_PHOTOS_PACKAGE = "com.google.android.apps.photos"
-        private val IMAGE_EXTENSIONS = setOf("jpg", "jpeg")
         private val ACTIVE_STATUSES = setOf(
             SessionStatus.WAITING,
             SessionStatus.RUNNING,

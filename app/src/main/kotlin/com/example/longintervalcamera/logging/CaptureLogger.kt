@@ -18,12 +18,6 @@ class CaptureLogger(private val storageManager: ImageStorageManager) {
         errorType: String? = null,
         errorMessage: String? = null
     ) {
-        val logFile = storageManager.logFile(config)
-        if (!logFile.exists()) {
-            logFile.parentFile?.mkdirs()
-            logFile.appendText(HEADER)
-        }
-
         val row = listOf(
             config.sessionId,
             TimeUtils.formatCsv(scheduledTimeMillis),
@@ -36,13 +30,21 @@ class CaptureLogger(private val storageManager: ImageStorageManager) {
             errorMessage.orEmpty()
         ).joinToString(",") { csvEscape(it) }
 
-        logFile.appendText(row + "\n")
+        val text = buildString {
+            if (!storageManager.logExists(config)) append(HEADER)
+            append(row)
+            append('\n')
+        }
+        runCatching { storageManager.appendLog(config, text) }
     }
 
     fun readTail(config: SessionConfig, maxLines: Int = 200): String {
-        val logFile = storageManager.logFile(config)
-        if (!logFile.exists()) return "ログはまだありません。"
-        val lines = logFile.readLines()
+        val lines = storageManager.readLogText(config)
+            ?.lineSequence()
+            ?.filter { it.isNotBlank() }
+            ?.toList()
+            .orEmpty()
+        if (lines.isEmpty()) return "ログはまだありません。"
         return lines.takeLast(maxLines).joinToString("\n")
     }
 

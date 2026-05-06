@@ -240,15 +240,15 @@ com.example.longintervalcamera
 
 ### 10.1 保存先
 
-初期版では、アプリ専用外部ストレージに保存する。
+共有Pictures配下に保存する。
 
 例:
 
 ```text
-Android/data/com.example.longintervalcamera/files/Pictures/LongIntervalCamera/{session_id}/
+Pictures/LongIntervalCamera/{session_id}/
 ```
 
-Google Play公開を想定しないため、MediaStore対応は必須ではない。ただし、ユーザーがPCへ取り出しやすいよう、可能であれば `Pictures/LongIntervalCamera` 配下に保存する。
+Android 10以降のscoped storageに対応するため、共有PicturesへのJPEG保存はMediaStore経由で行う。
 
 ### 10.2 ファイル名
 
@@ -318,8 +318,10 @@ capture_log.csv
 保存先:
 
 ```text
-{session_folder}/capture_log.csv
+アプリ管理領域の capture_log.csv
 ```
+
+ログはアプリのログ表示から確認できる。JPEG画像の保存先は共有Pictures配下とする。
 
 ### 12.2 ログ項目
 
