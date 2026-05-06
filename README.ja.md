@@ -1,6 +1,6 @@
 # LongIntervalCamera
 
-[English](README.en.md) | 日本語
+[English](README.md) | 日本語
 
 Androidスマートフォンを長期観測用のインターバル静止画カメラとして使うための個人向けアプリです。
 
