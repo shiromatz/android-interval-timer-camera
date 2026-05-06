@@ -6,9 +6,16 @@ Google Play配布ではなく、手元の端末へAPKを直接インストール
 
 ## すぐ試す
 
-[GitHub Releases](https://github.com/shiromatz/android-interval-timer-camera/releases/latest) から最新の `LongIntervalCamera-release.apk` をダウンロードして、Android端末へインストールできます。
+1. [GitHub Releases](https://github.com/shiromatz/android-interval-timer-camera/releases/latest) を開きます。
+2. 最新リリースの `LongIntervalCamera-release.apk` をAndroid端末へダウンロードします。
+3. ダウンロードしたAPKを開いてインストールします。
+4. 端末で提供元不明アプリの許可を求められた場合は、このAPKのインストールを許可します。
 
-Google Play配布ではないため、端末側で提供元不明アプリのインストール許可が必要です。
+PCにダウンロードしてADBでインストールする場合:
+
+```powershell
+adb install -r LongIntervalCamera-release.apk
+```
 
 ## 主な機能
 
@@ -27,91 +34,8 @@ Google Play配布ではないため、端末側で提供元不明アプリのイ
 
 - Android 8.0以上
 - アウトカメラ搭載端末
-- Kotlin / Android Gradle Plugin
-- CameraX
 
 開発と動作確認はPixel 6aを主対象にしています。
-
-## ビルド
-
-Android SDKが利用できる環境で以下を実行します。
-
-```powershell
-.\gradlew.bat :app:assembleDebug
-```
-
-テストとlintを含めて確認する場合:
-
-```powershell
-.\gradlew.bat :app:assembleDebug :app:testDebugUnitTest :app:lintDebug --no-daemon
-```
-
-生成されるdebug APK:
-
-```text
-app/build/outputs/apk/debug/app-debug.apk
-```
-
-公開配布用のrelease APKは、release署名用の環境変数を設定した状態で生成します。
-
-```powershell
-.\gradlew.bat :app:assembleRelease
-```
-
-生成されるrelease APK:
-
-```text
-app/build/outputs/apk/release/app-release.apk
-```
-
-公開用の `applicationId` は `com.shiromatz.longintervalcamera` です。
-
-## リリース
-
-GitHub Releases向けの署名済みAPKは、`v*` タグをpushするとGitHub Actionsで自動生成されます。
-
-事前にGitHub repository secretsへ以下を登録してください。
-
-```text
-RELEASE_KEYSTORE_BASE64
-RELEASE_KEYSTORE_PASSWORD
-RELEASE_KEY_ALIAS
-RELEASE_KEY_PASSWORD
-```
-
-`RELEASE_KEYSTORE_BASE64` はrelease keystoreをBase64化した値です。PowerShellでは以下で作成できます。
-
-```powershell
-New-Item -ItemType Directory -Force .release
-keytool -genkeypair -v -keystore .release\longintervalcamera-release.jks -alias longintervalcamera -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=LongIntervalCamera, O=shiromatz, C=JP"
-```
-
-`keytool` はJDKまたはAndroid Studioに含まれます。`RELEASE_KEY_ALIAS` には `longintervalcamera` を設定します。`RELEASE_KEYSTORE_PASSWORD` と `RELEASE_KEY_PASSWORD` には、keystore作成時に入力したパスワードを設定します。
-
-```powershell
-[Convert]::ToBase64String([IO.File]::ReadAllBytes(".release\longintervalcamera-release.jks"))
-```
-
-タグをpushすると、GitHub Releaseに `LongIntervalCamera-release.apk` と `LongIntervalCamera-release.apk.sha256` が添付されます。
-
-```powershell
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-## インストール
-
-USBデバッグを有効にした端末を接続し、ADBでインストールします。
-
-```powershell
-adb install -r app\build\outputs\apk\debug\app-debug.apk
-```
-
-端末が認識されているか確認する場合:
-
-```powershell
-adb devices -l
-```
 
 ## 使い方
 
@@ -152,6 +76,91 @@ capture_log.csv
 - 長時間運用では充電しながら使うことを推奨します。
 - 安定運用のため、必要に応じてバッテリー最適化から除外してください。
 - 本アプリは動画生成を行いません。タイムラプス動画化はPC等の外部ツールで行ってください。
+
+## 開発者向け
+
+### ビルド
+
+開発環境ではKotlin、Android Gradle Plugin、CameraXを使用します。
+
+Android SDKが利用できる環境でdebug APKを生成します。
+
+```powershell
+.\gradlew.bat :app:assembleDebug
+```
+
+テストとlintを含めて確認する場合:
+
+```powershell
+.\gradlew.bat :app:assembleDebug :app:testDebugUnitTest :app:lintDebug --no-daemon
+```
+
+生成されるdebug APK:
+
+```text
+app/build/outputs/apk/debug/app-debug.apk
+```
+
+公開配布用のrelease APKは、release署名用の環境変数を設定した状態で生成します。
+
+```powershell
+.\gradlew.bat :app:assembleRelease
+```
+
+生成されるrelease APK:
+
+```text
+app/build/outputs/apk/release/app-release.apk
+```
+
+公開用の `applicationId` は `com.shiromatz.longintervalcamera` です。
+
+### ローカルビルドしたAPKをインストール
+
+USBデバッグを有効にした端末を接続し、ADBでインストールします。
+
+```powershell
+adb install -r app\build\outputs\apk\debug\app-debug.apk
+```
+
+端末が認識されているか確認する場合:
+
+```powershell
+adb devices -l
+```
+
+### リリース
+
+GitHub Releases向けの署名済みAPKは、`v*` タグをpushするとGitHub Actionsで自動生成されます。
+
+事前にGitHub repository secretsへ以下を登録してください。
+
+```text
+RELEASE_KEYSTORE_BASE64
+RELEASE_KEYSTORE_PASSWORD
+RELEASE_KEY_ALIAS
+RELEASE_KEY_PASSWORD
+```
+
+`RELEASE_KEYSTORE_BASE64` はrelease keystoreをBase64化した値です。PowerShellでは以下で作成できます。
+
+```powershell
+New-Item -ItemType Directory -Force .release
+keytool -genkeypair -v -keystore .release\longintervalcamera-release.jks -alias longintervalcamera -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=LongIntervalCamera, O=shiromatz, C=JP"
+```
+
+`keytool` はJDKまたはAndroid Studioに含まれます。`RELEASE_KEY_ALIAS` には `longintervalcamera` を設定します。`RELEASE_KEYSTORE_PASSWORD` と `RELEASE_KEY_PASSWORD` には、keystore作成時に入力したパスワードを設定します。
+
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes(".release\longintervalcamera-release.jks"))
+```
+
+タグをpushすると、GitHub Releaseに `LongIntervalCamera-release.apk` と `LongIntervalCamera-release.apk.sha256` が添付されます。
+
+```powershell
+git tag v1.0.0
+git push origin v1.0.0
+```
 
 ## ライセンス
 
