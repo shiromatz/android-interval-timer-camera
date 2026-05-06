@@ -6,9 +6,9 @@ Google Play配布ではなく、手元の端末へAPKを直接インストール
 
 ## すぐ試す
 
-[GitHub Releases](https://github.com/shiromatz/android-interval-timer-camera/releases/latest) から最新の `LongIntervalCamera-debug.apk` をダウンロードして、Android端末へインストールできます。
+[GitHub Releases](https://github.com/shiromatz/android-interval-timer-camera/releases/latest) から最新の `LongIntervalCamera-release.apk` をダウンロードして、Android端末へインストールできます。
 
-Google Play配布ではないため、端末側で提供元不明アプリのインストール許可が必要です。公開APKはデバッグビルドで、動作確認用として配布しています。
+Google Play配布ではないため、端末側で提供元不明アプリのインストール許可が必要です。
 
 ## 主な機能
 
@@ -46,13 +46,53 @@ Android SDKが利用できる環境で以下を実行します。
 .\gradlew.bat :app:assembleDebug :app:testDebugUnitTest :app:lintDebug --no-daemon
 ```
 
-生成されるAPK:
+生成されるdebug APK:
 
 ```text
 app/build/outputs/apk/debug/app-debug.apk
 ```
 
-GitHub Releases向けのAPKは、`v*` タグをpushするとGitHub Actionsで自動生成されます。
+公開配布用のrelease APKは、release署名用の環境変数を設定した状態で生成します。
+
+```powershell
+.\gradlew.bat :app:assembleRelease
+```
+
+生成されるrelease APK:
+
+```text
+app/build/outputs/apk/release/app-release.apk
+```
+
+公開用の `applicationId` は `com.shiromatz.longintervalcamera` です。
+
+## リリース
+
+GitHub Releases向けの署名済みAPKは、`v*` タグをpushするとGitHub Actionsで自動生成されます。
+
+事前にGitHub repository secretsへ以下を登録してください。
+
+```text
+RELEASE_KEYSTORE_BASE64
+RELEASE_KEYSTORE_PASSWORD
+RELEASE_KEY_ALIAS
+RELEASE_KEY_PASSWORD
+```
+
+`RELEASE_KEYSTORE_BASE64` はrelease keystoreをBase64化した値です。PowerShellでは以下で作成できます。
+
+```powershell
+New-Item -ItemType Directory -Force .release
+keytool -genkeypair -v -keystore .release\longintervalcamera-release.jks -alias longintervalcamera -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=LongIntervalCamera, O=shiromatz, C=JP"
+```
+
+`keytool` はJDKまたはAndroid Studioに含まれます。`RELEASE_KEY_ALIAS` には `longintervalcamera` を設定します。`RELEASE_KEYSTORE_PASSWORD` と `RELEASE_KEY_PASSWORD` には、keystore作成時に入力したパスワードを設定します。
+
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes(".release\longintervalcamera-release.jks"))
+```
+
+タグをpushすると、GitHub Releaseに `LongIntervalCamera-release.apk` と `LongIntervalCamera-release.apk.sha256` が添付されます。
 
 ```powershell
 git tag v1.0.0
