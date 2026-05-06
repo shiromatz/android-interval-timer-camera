@@ -9,3 +9,6 @@ app/build/
 captures/
 *.apk
 *.aab
+*.jks
+*.keystore
+.release/
