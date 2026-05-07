@@ -54,6 +54,11 @@ class ImageStorageManager(private val context: Context) {
 
     fun appendLog(config: SessionConfig, text: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (fallbackLogFile(config).exists()) {
+                appendFallbackLog(config, text)
+                return
+            }
+
             val uri = findMediaStoreFileUri(sessionDirectory(config), LOG_FILE_NAME)
                 ?: runCatching { createLogUri(config) }.getOrNull()
             if (uri != null && runCatching { appendText(uri, text) }.isSuccess) {
@@ -70,15 +75,7 @@ class ImageStorageManager(private val context: Context) {
 
     fun readLogText(config: SessionConfig): String? {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val uri = findMediaStoreFileUri(sessionDirectory(config), LOG_FILE_NAME)
-            val publicLog = uri?.let {
-                runCatching {
-                    context.contentResolver.openInputStream(it)?.bufferedReader()?.use { reader -> reader.readText() }
-                }.getOrNull()
-            }
-            if (!publicLog.isNullOrBlank()) return publicLog
-
-            return fallbackLogFile(config).takeIf { it.exists() }?.readText()
+            return combineLogTexts(readPublicLogText(config), readFallbackLogText(config))
         }
 
         return logFile(config).takeIf { it.exists() }?.readText()
@@ -155,6 +152,51 @@ class ImageStorageManager(private val context: Context) {
         val file = fallbackLogFile(config)
         file.parentFile?.mkdirs()
         file.appendText(text)
+    }
+
+    private fun readPublicLogText(config: SessionConfig): String? {
+        val uri = findMediaStoreFileUri(sessionDirectory(config), LOG_FILE_NAME)
+        return uri?.let {
+            runCatching {
+                context.contentResolver.openInputStream(it)?.bufferedReader()?.use { reader -> reader.readText() }
+            }.getOrNull()
+        }
+    }
+
+    private fun readFallbackLogText(config: SessionConfig): String? {
+        return fallbackLogFile(config).takeIf { it.exists() }?.readText()
+    }
+
+    private fun combineLogTexts(vararg texts: String?): String? {
+        val rows = linkedSetOf<String>()
+        var header: String? = null
+
+        texts.forEach { text ->
+            text
+                ?.lineSequence()
+                ?.map { it.trimEnd('\r') }
+                ?.filter { it.isNotBlank() }
+                ?.forEach { line ->
+                    if (line.startsWith(LOG_HEADER_PREFIX)) {
+                        if (header == null) header = line
+                    } else {
+                        rows.add(line)
+                    }
+                }
+        }
+
+        if (header == null && rows.isEmpty()) return null
+
+        return buildString {
+            header?.let {
+                append(it)
+                append('\n')
+            }
+            rows.forEach {
+                append(it)
+                append('\n')
+            }
+        }
     }
 
     private fun fallbackLogFile(config: SessionConfig): File {
@@ -255,6 +297,7 @@ class ImageStorageManager(private val context: Context) {
     companion object {
         const val APP_FOLDER = "LongIntervalCamera"
         private const val LOG_FILE_NAME = "capture_log.csv"
+        private const val LOG_HEADER_PREFIX = "session_id,"
         private const val LOG_MIME_TYPE = "text/csv"
         private const val IMAGE_MIME_TYPE = "image/jpeg"
         private val IMAGE_EXTENSIONS = setOf("jpg", "jpeg")
