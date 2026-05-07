@@ -15,6 +15,7 @@ import android.os.Looper
 import android.provider.Settings
 import android.text.Editable
 import android.text.InputType
+import android.text.TextUtils
 import android.text.TextWatcher
 import android.view.Gravity
 import android.view.View
@@ -165,16 +166,21 @@ class MainActivity : android.app.Activity() {
             inputType = InputType.TYPE_CLASS_NUMBER
             setSingleLine(true)
             applyCompactEditStyle()
-            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+            layoutParams = LinearLayout.LayoutParams(dp(58), dp(40))
         }
         intervalUnitSpinner = Spinner(this).apply {
             adapter = ArrayAdapter(
                 this@MainActivity,
-                android.R.layout.simple_spinner_dropdown_item,
+                android.R.layout.simple_spinner_item,
                 resources.getStringArray(R.array.interval_units).toList()
-            )
+            ).apply {
+                setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            }
             minimumHeight = 0
-            layoutParams = LinearLayout.LayoutParams(dp(92), dp(40))
+            dropDownWidth = dp(148)
+            layoutParams = LinearLayout.LayoutParams(dp(126), dp(40)).apply {
+                setMargins(dp(6), 0, 0, 0)
+            }
         }
         intervalRow.addView(intervalEdit)
         intervalRow.addView(intervalUnitSpinner)
@@ -203,14 +209,22 @@ class MainActivity : android.app.Activity() {
         root.addView(blackoutCheck)
 
         root.addView(sectionTitle(getString(R.string.section_status)))
-        statusText = statusLine(root, getString(R.string.label_current_status))
-        nextCaptureText = statusLine(root, getString(R.string.label_next_capture))
-        countText = statusLine(root, getString(R.string.label_captured_count))
-        lastCaptureText = statusLine(root, getString(R.string.label_last_capture))
-        lastResultText = statusLine(root, getString(R.string.label_last_result))
-        pathText = statusLine(root, getString(R.string.label_save_location))
-        batteryText = statusLine(root, getString(R.string.label_battery))
-        storageText = statusLine(root, getString(R.string.label_free_space))
+        statusRow(root).also { row ->
+            statusText = statusCell(row, getString(R.string.label_current_status), marginEnd = true)
+            nextCaptureText = statusCell(row, getString(R.string.label_next_capture))
+        }
+        statusRow(root).also { row ->
+            countText = statusCell(row, getString(R.string.label_captured_count), marginEnd = true)
+            lastCaptureText = statusCell(row, getString(R.string.label_last_capture))
+        }
+        statusRow(root).also { row ->
+            lastResultText = statusCell(row, getString(R.string.label_last_result), marginEnd = true)
+            batteryText = statusCell(row, getString(R.string.label_battery))
+        }
+        statusRow(root).also { row ->
+            storageText = statusCell(row, getString(R.string.label_free_space), marginEnd = true)
+            pathText = statusCell(row, getString(R.string.label_save_location), singleLine = true)
+        }
 
         root.addView(sectionTitle(getString(R.string.section_actions)))
         startButton = button(getString(R.string.button_start_capture)) { startSessionClicked() }
@@ -763,10 +777,10 @@ class MainActivity : android.app.Activity() {
         }
     }
 
-    private fun fieldColumn(marginEnd: Boolean = false): LinearLayout {
+    private fun fieldColumn(marginEnd: Boolean = false, weight: Float = 1f): LinearLayout {
         return LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, weight).apply {
                 if (marginEnd) setMargins(0, 0, dp(8), 0)
             }
         }
@@ -776,9 +790,10 @@ class MainActivity : android.app.Activity() {
         parent: LinearLayout,
         label: String,
         inputType: Int = InputType.TYPE_CLASS_TEXT,
-        marginEnd: Boolean = false
+        marginEnd: Boolean = false,
+        weight: Float = 1f
     ): EditText {
-        val column = fieldColumn(marginEnd)
+        val column = fieldColumn(marginEnd, weight)
         column.addView(label(label))
         val edit = EditText(this).apply {
             this.inputType = inputType
@@ -807,11 +822,34 @@ class MainActivity : android.app.Activity() {
         }
     }
 
-    private fun statusLine(parent: LinearLayout, label: String): TextView {
+    private fun statusRow(parent: LinearLayout): LinearLayout {
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            parent.addView(this)
+        }
+    }
+
+    private fun statusCell(
+        parent: LinearLayout,
+        label: String,
+        marginEnd: Boolean = false,
+        singleLine: Boolean = false
+    ): TextView {
         return TextView(this).apply {
             text = getString(R.string.status_line, label, "-")
-            textSize = 13f
-            setPadding(0, dp(1), 0, dp(1))
+            textSize = 12f
+            setPadding(0, dp(1), 0, dp(2))
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                if (marginEnd) setMargins(0, 0, dp(8), 0)
+            }
+            if (singleLine) {
+                maxLines = 1
+                ellipsize = TextUtils.TruncateAt.MIDDLE
+            }
             parent.addView(this)
         }
     }
