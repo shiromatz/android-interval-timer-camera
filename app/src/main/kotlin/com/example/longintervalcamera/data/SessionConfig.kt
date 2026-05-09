@@ -15,5 +15,6 @@ data class SessionConfig(
     val capturedCount: Int,
     val lastCaptureTimeMillis: Long?,
     val lastResult: String?,
+    val runningStartedTimeMillis: Long? = null,
     val consecutiveCameraFailures: Int = 0
 )

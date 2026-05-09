@@ -411,6 +411,7 @@ class MainActivity : android.app.Activity() {
             nextCaptureTimeMillis = start,
             capturedCount = 0,
             lastCaptureTimeMillis = null,
+            runningStartedTimeMillis = null,
             lastResult = null
         )
     }
@@ -433,8 +434,9 @@ class MainActivity : android.app.Activity() {
     private fun recoverStaleRunningSession(config: SessionConfig?): SessionConfig? {
         if (config?.status != SessionStatus.RUNNING) return config
         val scheduled = config.nextCaptureTimeMillis ?: return config
+        val runningStarted = config.runningStartedTimeMillis ?: scheduled
         val now = TimeUtils.nowMillis()
-        if (now - scheduled <= STALE_RUNNING_TIMEOUT_MILLIS) return config
+        if (now - runningStarted <= STALE_RUNNING_TIMEOUT_MILLIS) return config
 
         val sessionDirectory = storageManager.sessionDirectory(config)
         val battery = BatteryUtils.batteryPercent(this)
@@ -468,6 +470,7 @@ class MainActivity : android.app.Activity() {
             config.copy(
                 status = SessionStatus.COMPLETED,
                 nextCaptureTimeMillis = null,
+                runningStartedTimeMillis = null,
                 lastResult = CaptureResult.SESSION_COMPLETED.name
             ).also {
                 CaptureAlarmScheduler(this).cancel()
@@ -476,6 +479,7 @@ class MainActivity : android.app.Activity() {
             val waiting = config.copy(
                 status = SessionStatus.WAITING,
                 nextCaptureTimeMillis = next,
+                runningStartedTimeMillis = null,
                 lastResult = CaptureResult.FAILED_CAPTURE.name
             )
             CaptureAlarmScheduler(this).schedule(next)
@@ -963,7 +967,7 @@ class MainActivity : android.app.Activity() {
     companion object {
         private const val REQUEST_PERMISSIONS = 9001
         private const val REFRESH_INTERVAL_MILLIS = 3_000L
-        private const val STALE_RUNNING_TIMEOUT_MILLIS = 90_000L
+        private const val STALE_RUNNING_TIMEOUT_MILLIS = 3L * 60L * 1000L
         private const val LOG_DIALOG_MAX_ROWS = 100
         private const val GOOGLE_PHOTOS_PACKAGE = "com.google.android.apps.photos"
         private val ACTIVE_STATUSES = setOf(

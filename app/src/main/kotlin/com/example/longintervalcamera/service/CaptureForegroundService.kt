@@ -100,7 +100,13 @@ class CaptureForegroundService : Service() {
             launchCapture(next)
         } else {
             scheduler.schedule(next)
-            repository.saveSession(config.copy(status = SessionStatus.WAITING, nextCaptureTimeMillis = next))
+            repository.saveSession(
+                config.copy(
+                    status = SessionStatus.WAITING,
+                    nextCaptureTimeMillis = next,
+                    runningStartedTimeMillis = null
+                )
+            )
             updateNotification(repository.getSession())
         }
     }
@@ -121,6 +127,7 @@ class CaptureForegroundService : Service() {
         val updated = config.copy(
             status = SessionStatus.WAITING,
             nextCaptureTimeMillis = next,
+            runningStartedTimeMillis = null,
             lastResult = "RESUMED"
         )
         repository.saveSession(updated)
@@ -140,7 +147,11 @@ class CaptureForegroundService : Service() {
             batteryPercent = BatteryUtils.batteryPercent(this),
             freeSpaceBytes = StorageUtils.freeSpaceBytes(storageManager.sessionDirectory(config))
         )
-        val updated = config.copy(status = SessionStatus.PAUSED, lastResult = CaptureResult.SESSION_PAUSED.name)
+        val updated = config.copy(
+            status = SessionStatus.PAUSED,
+            runningStartedTimeMillis = null,
+            lastResult = CaptureResult.SESSION_PAUSED.name
+        )
         repository.saveSession(updated)
         updateNotification(updated)
         stopForeground(STOP_FOREGROUND_DETACH)
@@ -162,6 +173,7 @@ class CaptureForegroundService : Service() {
         val updated = config.copy(
             status = SessionStatus.STOPPED,
             nextCaptureTimeMillis = null,
+            runningStartedTimeMillis = null,
             lastResult = CaptureResult.SESSION_STOPPED_BY_USER.name
         )
         repository.saveSession(updated)
@@ -189,7 +201,11 @@ class CaptureForegroundService : Service() {
                 return
             }
 
-            val runningConfig = config.copy(status = SessionStatus.RUNNING, nextCaptureTimeMillis = scheduledTimeMillis)
+            val runningConfig = config.copy(
+                status = SessionStatus.RUNNING,
+                nextCaptureTimeMillis = scheduledTimeMillis,
+                runningStartedTimeMillis = now
+            )
             repository.saveSession(runningConfig)
             updateNotification(runningConfig)
 
@@ -208,7 +224,10 @@ class CaptureForegroundService : Service() {
                     batteryPercent = batteryPercent,
                     freeSpaceBytes = freeSpaceBytes
                 )
-                val afterSkip = runningConfig.copy(lastResult = CaptureResult.SKIPPED_LOW_BATTERY.name)
+                val afterSkip = runningConfig.copy(
+                    runningStartedTimeMillis = null,
+                    lastResult = CaptureResult.SKIPPED_LOW_BATTERY.name
+                )
                 scheduleAfterAttempt(afterSkip, scheduledTimeMillis, CaptureResult.SKIPPED_LOW_BATTERY)
                 return
             }
@@ -226,6 +245,7 @@ class CaptureForegroundService : Service() {
                 val updated = runningConfig.copy(
                     status = SessionStatus.ERROR,
                     nextCaptureTimeMillis = null,
+                    runningStartedTimeMillis = null,
                     lastResult = CaptureResult.SKIPPED_LOW_STORAGE.name
                 )
                 repository.saveSession(updated)
@@ -277,13 +297,15 @@ class CaptureForegroundService : Service() {
                 capturedCount = capturedCount,
                 lastCaptureTimeMillis = actualTime,
                 lastResult = outcome.result.name,
+                runningStartedTimeMillis = null,
                 consecutiveCameraFailures = cameraFailures
             )
 
             if (shouldStopForSaveFailure || shouldStopForCameraFailure) {
                 val stopped = updated.copy(
                     status = SessionStatus.ERROR,
-                    nextCaptureTimeMillis = null
+                    nextCaptureTimeMillis = null,
+                    runningStartedTimeMillis = null
                 )
                 repository.saveSession(stopped)
                 scheduler.cancel()
@@ -315,6 +337,7 @@ class CaptureForegroundService : Service() {
         val updated = config.copy(
             status = SessionStatus.WAITING,
             nextCaptureTimeMillis = next,
+            runningStartedTimeMillis = null,
             lastResult = result.name
         )
         repository.saveSession(updated)
@@ -335,6 +358,7 @@ class CaptureForegroundService : Service() {
         val updated = config.copy(
             status = SessionStatus.COMPLETED,
             nextCaptureTimeMillis = null,
+            runningStartedTimeMillis = null,
             lastResult = CaptureResult.SESSION_COMPLETED.name
         )
         repository.saveSession(updated)
@@ -463,8 +487,8 @@ class CaptureForegroundService : Service() {
         private const val REQUEST_PAUSE = 40_011
         private const val REQUEST_STOP = 40_012
         private const val MAX_CAMERA_FAILURES = 3
-        private const val CAPTURE_WAKE_LOCK_TIMEOUT_MILLIS = 2L * 60L * 1000L
-        private const val CAPTURE_TIMEOUT_MILLIS = 45L * 1000L
+        private const val CAPTURE_WAKE_LOCK_TIMEOUT_MILLIS = 3L * 60L * 1000L
+        private const val CAPTURE_TIMEOUT_MILLIS = 120L * 1000L
 
         fun start(context: Context) {
             context.startServiceIntent(ACTION_START)

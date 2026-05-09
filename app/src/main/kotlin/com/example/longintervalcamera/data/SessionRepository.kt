@@ -25,6 +25,7 @@ class SessionRepository(context: Context) {
             capturedCount = prefs.getInt(KEY_CAPTURED_COUNT, 0),
             lastCaptureTimeMillis = prefs.getLongOrNull(KEY_LAST_CAPTURE),
             lastResult = prefs.getString(KEY_LAST_RESULT, null),
+            runningStartedTimeMillis = prefs.getLongOrNull(KEY_RUNNING_STARTED),
             consecutiveCameraFailures = prefs.getInt(KEY_CAMERA_FAILURES, 0)
         )
     }
@@ -46,6 +47,7 @@ class SessionRepository(context: Context) {
             .putInt(KEY_CAPTURED_COUNT, config.capturedCount)
             .putNullableLong(KEY_LAST_CAPTURE, config.lastCaptureTimeMillis)
             .putString(KEY_LAST_RESULT, config.lastResult)
+            .putNullableLong(KEY_RUNNING_STARTED, config.runningStartedTimeMillis)
             .putInt(KEY_CAMERA_FAILURES, config.consecutiveCameraFailures)
             .commit()
     }
@@ -88,6 +90,7 @@ class SessionRepository(context: Context) {
         private const val KEY_CAPTURED_COUNT = "captured_count"
         private const val KEY_LAST_CAPTURE = "last_capture"
         private const val KEY_LAST_RESULT = "last_result"
+        private const val KEY_RUNNING_STARTED = "running_started"
         private const val KEY_CAMERA_FAILURES = "camera_failures"
     }
 }

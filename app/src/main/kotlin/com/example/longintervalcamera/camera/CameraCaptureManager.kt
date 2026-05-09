@@ -17,6 +17,7 @@ import androidx.lifecycle.LifecycleRegistry
 import com.example.longintervalcamera.data.CaptureResult
 import com.example.longintervalcamera.storage.ImageCaptureTarget
 import com.google.common.util.concurrent.ListenableFuture
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -54,6 +55,8 @@ class CameraCaptureManager(private val context: Context) {
 
                 imageCapture.takePictureAwait(target, provider, lifecycleOwner)
             }
+        } catch (exception: CancellationException) {
+            throw exception
         } catch (exception: Exception) {
             CameraCaptureOutcome(
                 result = CaptureResult.FAILED_CAMERA_INIT,

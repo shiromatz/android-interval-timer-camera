@@ -15,6 +15,7 @@ class BootReceiver : BroadcastReceiver() {
             if (config.status.isUnfinished) {
                 config.copy(
                     status = SessionStatus.PAUSED,
+                    runningStartedTimeMillis = null,
                     lastResult = CaptureResult.DEVICE_REBOOTED_OPEN_APP_TO_RESUME.name
                 )
             } else {
